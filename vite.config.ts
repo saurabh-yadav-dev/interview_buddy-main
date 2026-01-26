@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     define: {
       // JSON.stringify is crucial. If the var is undefined, we fallback to ""
       // to ensure the code receives a string, preventing runtime crashes.
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || ""),
+      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY || ""),
       'process.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY || ""),
       'process.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN || ""),
       'process.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID || ""),
@@ -22,13 +22,23 @@ export default defineConfig(({ mode }) => {
       
       // Polyfill process.env for libraries that rely on it (like pdfjs)
       'process.env.NODE_ENV': JSON.stringify(mode),
-      'process.env': JSON.stringify({}), 
     },
     optimizeDeps: {
-      exclude: ['lucide-react'],
+      exclude: ['lucide-react', 'pdfjs-dist'],
     },
     build: {
-      target: 'esnext', 
+      target: ['esnext', 'es2020'], 
+      rollupOptions: {
+        output: {
+          generatedCode: 'es2015'
+        }
+      }
+    },
+    esbuild: {
+      target: 'esnext',
+      supported: {
+        'top-level-await': true
+      }
     }
   };
 });

@@ -266,9 +266,19 @@ const LiveInterview: React.FC<LiveInterviewProps> = ({ profile, onEndInterview }
 
     const initializeSession = async () => {
       try {
+        console.log("🚀 Starting Interview Session Initialization...");
+        console.log("📌 Environment Check:");
+        console.log("  API_KEY present:", !!process.env.API_KEY);
+        console.log("  API_KEY value:", process.env.API_KEY ? process.env.API_KEY.substring(0, 10) + "..." : "MISSING");
+        console.log("  Hostname:", window.location.hostname);
+        console.log("  Is Secure Context:", window.isSecureContext);
+        
         if(!process.env.API_KEY) {
-           throw new Error("API Key is missing. Please check your .env file.");
+           console.error("❌ API_KEY is missing!");
+           throw new Error("API Key is missing. Please check your .env file or Vercel environment variables.");
         }
+
+        console.log("✅ API Key found!");
 
         // --- SECURITY CHECK ---
         // getUserMedia requires a Secure Context (HTTPS or localhost).
@@ -289,26 +299,69 @@ const LiveInterview: React.FC<LiveInterviewProps> = ({ profile, onEndInterview }
         
         // Setup Media Stream with Specific Error Handling
         let stream: MediaStream;
+        console.log("🎬 Attempting to access camera and microphone...");
+        
         try {
+            // First attempt: with ideal constraints
+            console.log("📹 Trying getUserMedia with ideal video constraints...");
             stream = await navigator.mediaDevices.getUserMedia({ 
                 audio: true, 
                 video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 } } 
             });
+            console.log("✅ Success! Got media stream with ideal constraints");
         } catch (mediaErr: any) {
-            console.error("Media Access Error:", mediaErr);
-            if (mediaErr.name === 'NotAllowedError' || mediaErr.name === 'PermissionDeniedError') {
-                throw new Error("PERMISSION_DENIED");
-            } else if (mediaErr.name === 'NotFoundError') {
-                throw new Error("NO_DEVICES");
-            } else {
-                throw mediaErr;
+            console.error("❌ getUserMedia Error:", mediaErr);
+            console.error("Error Name:", mediaErr.name);
+            console.error("Error Message:", mediaErr.message);
+            console.error("Full Error:", mediaErr);
+            
+            // Fallback: Try with minimal constraints
+            try {
+                console.log("🔄 Fallback: Trying getUserMedia with minimal constraints...");
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: true, 
+                    video: true
+                });
+                console.log("✅ Success! Got media stream with minimal constraints");
+            } catch (fallbackErr: any) {
+                console.error("❌ Fallback also failed:", fallbackErr);
+                console.error("Fallback Error Name:", fallbackErr.name);
+                console.error("Fallback Error Message:", fallbackErr.message);
+                
+                if (mediaErr.name === 'NotAllowedError' || mediaErr.name === 'PermissionDeniedError') {
+                    throw new Error("PERMISSION_DENIED");
+                } else if (mediaErr.name === 'NotFoundError') {
+                    throw new Error("NO_DEVICES");
+                } else if (mediaErr.name === 'NotReadableError') {
+                    throw new Error("CAMERA_IN_USE: Camera is already in use by another application");
+                } else {
+                    throw mediaErr;
+                }
             }
         }
+
+        console.log("📊 Media stream info:", {
+            videoTracks: stream.getVideoTracks().length,
+            audioTracks: stream.getAudioTracks().length,
+            videoSettings: stream.getVideoTracks()[0]?.getSettings()
+        });
 
         streamRef.current = stream;
         
         if (videoRef.current) {
+          console.log("🎥 Attaching stream to video element...");
           videoRef.current.srcObject = stream;
+          
+          // Try to play the video
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => console.log("✅ Video playing successfully"))
+              .catch(err => console.error("❌ Video play error:", err));
+          }
+        } else {
+          console.error("❌ Video ref is null!");
+          throw new Error("Video element not initialized");
         }
 
         const systemInstruction = `
