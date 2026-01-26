@@ -275,7 +275,7 @@ const LiveInterview: React.FC<LiveInterviewProps> = ({ profile, onEndInterview }
         
         if(!process.env.API_KEY) {
            console.error("❌ API_KEY is missing!");
-           throw new Error("API Key is missing. Please check your .env file or Vercel environment variables.");
+           throw new Error("API Key is missing. Please check your .env file.");
         }
 
         console.log("✅ API Key found!");
