@@ -14,7 +14,6 @@ interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   logout: () => Promise<void>;
-  loginAsGuest: () => void;
   registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
 }
@@ -40,8 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Note: This fires on login/logout/init, but NOT on updateProfile usually.
         setCurrentUser(user);
       } else {
-        // Handle guest user persistence or clear state
-        setCurrentUser(prev => (prev?.isAnonymous && prev.email === 'guest@example.com' ? prev : null));
+        // Clear state when no authenticated user
+        setCurrentUser(null);
       }
       setLoading(false);
     });
@@ -99,33 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(null);
   };
 
-  const loginAsGuest = () => {
-    const guestUser = {
-      uid: 'guest-' + Math.random().toString(36).substr(2, 9),
-      displayName: 'Guest User',
-      email: 'guest@example.com',
-      photoURL: null,
-      emailVerified: true,
-      isAnonymous: true,
-      metadata: {},
-      providerData: [],
-      delete: async () => {},
-      getIdToken: async () => 'mock-token',
-      getIdTokenResult: async () => ({} as any),
-      reload: async () => {},
-      toJSON: () => ({}),
-      phoneNumber: null,
-      providerId: 'guest',
-    } as unknown as User;
-    
-    setCurrentUser(guestUser);
-  };
-
   const value = {
     currentUser,
     loading,
     logout,
-    loginAsGuest,
     registerWithEmail,
     loginWithEmail
   };

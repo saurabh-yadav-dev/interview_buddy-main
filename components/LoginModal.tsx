@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn, AlertCircle, Sparkles, User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { X, LogIn, AlertCircle, Sparkles, Mail, Lock, ArrowRight } from 'lucide-react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +20,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
   const [password, setPassword] = useState('');
   const [name, setName] = useState(''); // Only for Sign Up
 
-  const { loginAsGuest, registerWithEmail, loginWithEmail } = useAuth();
+  const { registerWithEmail, loginWithEmail } = useAuth();
 
   if (!isOpen) return null;
 
@@ -71,11 +71,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
     }
   };
 
-  const handleGuestLogin = () => {
-    loginAsGuest();
-    onLoginSuccess();
-    onClose();
-  };
 
   const handleAuthError = (err: any) => {
     const code = err.code;
@@ -225,13 +220,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
               <span>Google</span>
             </button>
             
-            <button
-              onClick={handleGuestLogin}
-              className="flex items-center justify-center space-x-2 bg-gray-50 border border-gray-200 hover:bg-white text-gray-700 font-medium py-2.5 rounded-xl transition-all text-sm"
-            >
-              <User size={18} />
-              <span>Guest</span>
-            </button>
+            {/* Guest login removed */}
           </div>
 
           <div className="text-center">
